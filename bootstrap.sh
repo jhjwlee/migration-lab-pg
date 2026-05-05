@@ -60,7 +60,9 @@ fi
 # SUFFIX: 학생 식별자 (예: jhj, s001, 2026a) — RG 충돌 방지
 SUFFIX="${SUFFIX:-}"
 
-LOC="${LOC:-koreacentral}"
+# Region 랜덤 선택 (비용·지연 균형이 좋은 4개 리전)
+REGIONS=(koreacentral koreasouth japaneast southeastasia)
+LOC="${LOC:-${REGIONS[$((RANDOM % ${#REGIONS[@]}))]}}"
 USER_NAME="${USER_NAME:-azureuser}"
 
 # Repository raw URL (실제 push 후 변경)
@@ -214,7 +216,7 @@ if [ -z "${LAB_PWD:-}" ]; then
   echo "  ▶ Lab 비밀번호 (모든 DB 계정에 동일하게 적용)"
   echo "    • 12자 이상"
   echo "    • 대문자·소문자·숫자·특수문자 중 3종류 이상 포함"
-  echo "    • 예: MyLab\\$2026!  /  CarMarket@Lab2026"
+  echo '    • 예: MyLab$2026!  /  CarMarket@Lab2026'
   echo ""
   echo "  사용처:"
   echo "    - 소스 PG의 'postgres' 사용자"
