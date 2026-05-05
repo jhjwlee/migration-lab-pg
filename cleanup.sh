@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/cleanup.sh — Migration Lab 자원 정리
+# cleanup.sh — Migration Lab 자원 정리
 set -euo pipefail
 
 # SUFFIX 입력

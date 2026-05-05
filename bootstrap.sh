@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/bootstrap.sh — Cloud Migration Lab 자원 일괄 생성
+# bootstrap.sh — Cloud Migration Lab 자원 일괄 생성
 #
 # 사용 환경:
 #   - Azure Cloud Shell (권장, 키 관리 0)
@@ -7,7 +7,7 @@
 #   - SSH 키 입력 불필요 — VM은 cloud-init으로 셋업, 학생은 SSH 거의 안 씀
 #
 # 한 줄 실행:
-#   curl -fsSL https://raw.githubusercontent.com/jhjwlee/migration-lab-pg/main/scripts/bootstrap.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/jhjwlee/migration-lab-pg/main/bootstrap.sh | bash
 #
 # 또는 환경변수 미리 지정:
 #   export SUFFIX="jhj" LAB_PWD='MyLab@2026Pwd'
@@ -39,7 +39,7 @@ if [ ! -t 0 ] && [ -z "${LAB_PWD:-}" ]; then
 다음 두 가지 방법 중 하나를 사용해 주세요:
 
 [방법 1] 다운로드 후 실행 (권장)
-  curl -fsSL https://raw.githubusercontent.com/jhjwlee/migration-lab-pg/main/scripts/bootstrap.sh -o bootstrap.sh
+  curl -fsSL https://raw.githubusercontent.com/jhjwlee/migration-lab-pg/main/bootstrap.sh -o bootstrap.sh
   chmod +x bootstrap.sh
   ./bootstrap.sh
 
