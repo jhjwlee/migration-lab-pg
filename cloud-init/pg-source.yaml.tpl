@@ -1,10 +1,10 @@
 #cloud-config
 # cloud-init/pg-source.yaml
-# Ubuntu 24.04 + PostgreSQL 16 + CarMarket 스키마 + 시드 50K + logical replication
+# Ubuntu 24.04 + PostgreSQL 16 + CarMarket schema + seed 50K + logical replication
 #
-# 주입 변수 (envsubst로 치환):
-#   ${PG_PWD}             - postgres super user 비밀번호
-#   ${MIGRATION_PWD}      - migrationuser 비밀번호 (REPLICATION 권한)
+# Injected variables (via envsubst):
+#   ${PG_PWD}             - postgres super user password
+#   ${MIGRATION_PWD}      - migrationuser password (REPLICATION role)
 
 package_update: true
 package_upgrade: false
@@ -16,20 +16,20 @@ packages:
 
 write_files:
   # ============================================================
-  # 1. PostgreSQL 설정: 외부 접근 + logical replication
+  # 1. PostgreSQL config: external access + logical replication
   # ============================================================
   - path: /etc/postgresql/16/main/conf.d/migration.conf
     permissions: '0644'
     owner: postgres:postgres
     content: |
-      # Migration lab — overrides postgresql.conf
+      # Migration lab - overrides postgresql.conf
       listen_addresses = '*'
       wal_level = logical
       max_wal_senders = 10
       max_replication_slots = 10
       max_worker_processes = 16
 
-  # pg_hba.conf — 외부 접근 + replication 허용
+  # pg_hba.conf - external access + replication
   - path: /tmp/pg_hba_migration.conf
     permissions: '0644'
     content: |
@@ -39,7 +39,7 @@ write_files:
       host    all            migrationuser    0.0.0.0/0    md5
 
   # ============================================================
-  # 2. 스키마 + 시드 SQL
+  # 2. Schema + Seed SQL
   # ============================================================
   - path: /tmp/schema.sql
     permissions: '0644'
@@ -87,7 +87,7 @@ write_files:
       CREATE INDEX idx_cars_status  ON cars(status);
       CREATE INDEX idx_cars_created ON cars(created_at DESC);
 
-  # 시드 Python (50K)
+  # Seed Python (50K)
   - path: /tmp/seed.py
     permissions: '0755'
     content: |
@@ -142,7 +142,7 @@ write_files:
                random.randint(2015,2024),
                random.randint(5_000_000, 80_000_000),
                random.randint(1000, 200000),
-               random.choice(fuels), ff'Car listing {i+1} description',
+               random.choice(fuels), f'Car listing {i+1} description',
                random.choices(['available','reserved','sold'],
                               weights=[70,10,20])[0])
           )
@@ -166,7 +166,7 @@ write_files:
       print('Seeding complete: 5K+50K+30K = 85K rows', flush=True)
 
   # ============================================================
-  # 3. Bootstrap script (실제 실행 흐름)
+  # 3. Bootstrap script (main execution flow)
   # ============================================================
   - path: /opt/bootstrap/run.sh
     permissions: '0755'
@@ -176,18 +176,18 @@ write_files:
       LOG=/var/log/pg-bootstrap.log
       exec > >(tee -a "$LOG") 2>&1
       echo "==========================================="
-      echo "PG VM Bootstrap — $(date)"
+      echo "PG VM Bootstrap - $(date)"
       echo "==========================================="
 
-      # 1. PostgreSQL 시작 + super user 비밀번호
+      # 1. Start PostgreSQL + set super user password
       systemctl restart postgresql
       sudo -u postgres psql -c "ALTER USER postgres PASSWORD '${PG_PWD}';"
 
-      # 2. CarMarket DB 생성 + 스키마
+      # 2. Create CarMarket DB + schema
       sudo -u postgres createdb carmarket || echo "DB exists, skipping"
       sudo -u postgres psql -f /tmp/schema.sql
 
-      # 3. migrationuser (REPLICATION 권한)
+      # 3. Create migrationuser (REPLICATION role)
       sudo -u postgres psql <<EOSQL
       DROP USER IF EXISTS migrationuser;
       CREATE USER migrationuser WITH PASSWORD '${MIGRATION_PWD}' REPLICATION;
@@ -198,7 +198,7 @@ write_files:
       ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO migrationuser;
       EOSQL
 
-      # 4. pg_hba.conf 추가 (idempotent)
+      # 4. Append pg_hba.conf (idempotent)
       if ! grep -q "Migration lab" /etc/postgresql/16/main/pg_hba.conf; then
         echo "" >> /etc/postgresql/16/main/pg_hba.conf
         echo "# === Migration lab (auto-added by cloud-init) ===" \
@@ -207,14 +207,14 @@ write_files:
           >> /etc/postgresql/16/main/pg_hba.conf
       fi
 
-      # 5. 재시작 (logical replication 적용)
+      # 5. Restart (apply logical replication)
       systemctl restart postgresql
       sleep 3
 
-      # 6. 시드 (~3분 소요)
+      # 6. Seed data (~3 min)
       python3 /tmp/seed.py "${PG_PWD}"
 
-      # 7. 검증
+      # 7. Verify
       sudo -u postgres psql -d carmarket -c "
       SELECT 'users' AS t, COUNT(*) FROM users
       UNION ALL SELECT 'cars', COUNT(*) FROM cars
@@ -223,10 +223,10 @@ write_files:
 
       echo "wal_level: $(sudo -u postgres psql -tAc 'SHOW wal_level')"
 
-      # 8. 완료 마커
+      # 8. Done marker
       touch /var/log/pg-bootstrap.done
       echo "==========================================="
-      echo "Bootstrap complete — $(date)"
+      echo "Bootstrap complete - $(date)"
       echo "==========================================="
 
 runcmd:
