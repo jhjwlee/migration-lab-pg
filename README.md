@@ -129,15 +129,15 @@ Step 10: 자원 정리
 ## 📂 디렉토리 구조
 
 ```
-migration-lab/
+migration-lab-pg/
 ├── README.md
+├── bootstrap.sh           ← 한 줄 자원 생성
+├── cleanup.sh             ← 비용 차단
+├── cloud-init/
+│   └── pg-source.yaml.tpl ← VM 자동 셋업 템플릿
 ├── docs/
 │   └── Migration_HandsOn_Workbook.docx
-├── scripts/
-│   ├── bootstrap.sh      ← 한 줄 자원 생성
-│   └── cleanup.sh        ← 비용 차단
-└── cloud-init/
-    └── pg-source.yaml.tpl  ← VM 자동 셋업 템플릿
+└── Migration_HandsOn_Workbook_v2.docx
 ```
 
 ---
