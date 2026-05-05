@@ -424,7 +424,7 @@ echo "  cloud-init이 PG 설치 + 50K 시드 + logical 활성화를 처리합니
 echo "  소요: 약 5~8분. 진행 상황 모니터링..."
 
 # /var/log/pg-bootstrap.done 마커 폴링 (run-command 사용 — SSH 불필요!)
-MAX_WAIT=600  # 10분
+MAX_WAIT=900  # 15분
 ELAPSED=0
 INTERVAL=15
 
